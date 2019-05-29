@@ -1,7 +1,24 @@
 import lib/tropic/tropic_ui;
 
+
+drawCard() -> Tropic {
+	TRectangle([Fill(darkGray)], TFixed(150.0, 150.0));
+}
+
 main() {
 	header = TText("Memory game", [FontSize(20.0)]);
-	view = header |> TCenterX;
+
+	cards = TCols([
+		drawCard(),
+		drawCard(),
+		drawCard(),
+		drawCard(),
+	]);
+
+	view = TLines([
+		header |> TCenterX,
+		cards  |> TCenterX,
+	]);
+
 	trender(view, []);
 }
