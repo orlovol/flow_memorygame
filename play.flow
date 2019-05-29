@@ -1,0 +1,5 @@
+import game;
+
+main() {
+	trender(memoryGame(), []);
+}

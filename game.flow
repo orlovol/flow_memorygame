@@ -1,5 +1,9 @@
 import lib/tropic/tropic_ui;
 
+export {
+	memoryGame() -> Tropic;
+}
+
 Card(
 	face: string,
 	opened: DynamicBehaviour<bool>,
@@ -10,7 +14,7 @@ ICONSIZE = WidthHeight(160.0, 160.0);
 ICONBACK = "icons/back.png";
 ICONFACES = generate(0, 10, \i -> "icons/" + lpad(i2s(i), "0", 3) + ".png");
 MATCH = 2; // number of cards to match
-COLS = 5;
+COLS = if (mobile) 4 else 5;
 FACES = {
 	types = length(ICONFACES);
 	generate(0, types * MATCH, \i -> ICONFACES[i % types]);
@@ -134,7 +138,7 @@ memoryGameTropic(gameRound: int, nextRound: () -> void) -> Tropic {
 		TLinesSameWidth([
 			header,
 			blockerForm(cardGrid, closeClick, feq(activeCount, MATCH)),
-		]) |> TCenterX
+		])
 	);
 }
 
@@ -148,10 +152,6 @@ memoryGame() -> Tropic {
 		[
 			\ -> fconnectSelect(gameRounds, view, restartGame)
 		],
-		TMutable(view)
+		TZoom(TMutable(view), TFillXY(), true)
 	);
-}
-
-main() {
-	trender(memoryGame(), []);
 }
