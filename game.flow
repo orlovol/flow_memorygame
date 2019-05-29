@@ -1,6 +1,7 @@
-import form/renderform;
+import lib/tropic/tropic_ui;
 
 main() {
-	println("Hello console");
-	us = render(Text("Hello window!", []));
+	header = TText("Memory game", [FontSize(20.0)]);
+	view = header |> TCenterX;
+	trender(view, []);
 }
