@@ -67,12 +67,12 @@ blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<b
 	);
 }
 
-main() {
+memoryGameTropic(gameRound: int, nextRound: () -> void) -> Tropic {
 	text = \t : string -> TText(t, [FontSize(20.0)]);
 
 	movesCount = make(0);
 	header = TCols([
-		text("Memory game"),
+		text("Memory game - Round " + i2s(gameRound)),
 		TFillX(),
 		TSelect(movesCount, \moves -> text("Moves: " + i2s(moves))),
 	]);
@@ -108,13 +108,24 @@ main() {
 
 	congratulate = \solved -> {
 		if (solved) {
+			close = make(false);
+			onClick = \ -> {
+				reverseBehaviour(close);
+				nextRound();
+			}
 			moves = movesCount |> getValue |> i2s;
-			dialog = text("You won in " + moves + " moves!");
-			ShowTDialog(TFrame(20.0, 10.0, [Fill(white)], dialog), []);
+			dialog = TLinesXCenter([
+				text("You won in " + moves + " moves!"),
+				TTextButton(
+					"Play again", "enter",
+					[FontFamily("RobotoMedium")], [TOnClicked(onClick)]
+				)
+			]);
+			ShowTDialog(TFrame(20.0, 10.0, [Fill(white)], dialog), [TCloseWhen(close)]);
 		}
 	}
 
-	game = TConstruct(
+	TConstruct(
 		[
 			makeSubscribe(activeCardStates, matchOpened),
 			makeSubscribe(closeClick, closeOpened),
@@ -125,6 +136,22 @@ main() {
 			blockerForm(cardGrid, closeClick, feq(activeCount, MATCH)),
 		]) |> TCenterX
 	);
+}
 
-	trender(game, []);
+memoryGame() -> Tropic {
+	view = make(TEmpty());
+	gameRounds = make(0);
+	nextRound = \ -> nextDistinct(gameRounds, getValue(gameRounds) + 1);
+	restartGame = \gameRound -> memoryGameTropic(gameRound, nextRound);
+
+	TConstruct(
+		[
+			\ -> fconnectSelect(gameRounds, view, restartGame)
+		],
+		TMutable(view)
+	);
+}
+
+main() {
+	trender(memoryGame(), []);
 }
