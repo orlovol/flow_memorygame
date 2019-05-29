@@ -6,31 +6,44 @@ Card(
 	solved: DynamicBehaviour<bool>,
 );
 
+COLORS = [
+	TGreen(),
+	TRed(),
+	TBlue(),
+	TYellow(),
+	TWhite(),
+	TBlack(),
+];
+
+MATCH = 2; // number of cards to match
+COLS = 4;
+
 drawCard(color: TColor) -> Tropic {
 	size = TFixed(150.0, 150.0);
 
 	card = Card(color, make(false), make(false));
 	toggleCard = \ -> reverseBehaviour(card.opened);
 
-	TSelect(card.opened, \opened -> {
+	button = TSelect(card.opened, \opened -> {
 		faceColor = if (opened) card.face else TDarkGrey();
 		TTextButton("", "", [faceColor, TForeground(size)], [TOnClicked(toggleCard)]);
 	});
+
+	TBorder4(2.0, button);
 }
 
 main() {
 	header = TText("Memory game", [FontSize(20.0)]);
 
-	cards = TCols([
-		drawCard(TGreen()),
-		drawCard(TRed()),
-		drawCard(TGreen()),
-		drawCard(TRed()),
-	]);
+	colorsLen = length(COLORS)
+	faces = generate(0, colorsLen * MATCH, \i -> COLORS[i % colorsLen]);
+
+	cards = map(shuffleArray(faces), drawCard);
+	cardGrid = TGrid(splitByNumber(cards, COLS));
 
 	view = TLinesXCenter([
 		header,
-		cards,
+		TFrame(40.0, 0.0, [Fill(0xe3e3e3)], cardGrid)
 	]) |> TCenterX;
 
 	trender(view, []);
