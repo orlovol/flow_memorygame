@@ -68,7 +68,9 @@ blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<b
 }
 
 main() {
-	header = TText("Memory game", [FontSize(20.0)]);
+	text = \t : string -> TText(t, [FontSize(20.0)]);
+
+	header = text("Memory game");
 
 	makeCard = \icon -> Card(icon, make(false), make(false));
 	cards = map(shuffleArray(FACES), makeCard);
@@ -76,6 +78,7 @@ main() {
 
 	activeCardStates = fmerge(map(cards, \c -> fand(c.opened, fnot(c.solved))));
 	activeCount = flength(ffilter(activeCardStates, idfn));
+	solvedAll = feq(flength(ffilter(fmerge(map(cards, \c -> c.solved)), idfn)), length(FACES));
 
 	closeClick = make(false);
 	closeOpened = \close -> {
@@ -97,11 +100,18 @@ main() {
 		}
 	}
 
+	congratulate = \solved -> {
+		if (solved) {
+			dialog = text("You won!");
+			ShowTDialog(TFrame(20.0, 10.0, [Fill(white)], dialog), []);
+		}
+	}
 
 	game = TConstruct(
 		[
 			makeSubscribe(activeCardStates, matchOpened),
-			makeSubscribe(closeClick, closeOpened)
+			makeSubscribe(closeClick, closeOpened),
+			makeSubscribe(solvedAll, congratulate),
 		],
 		TLinesXCenter([
 			header,
