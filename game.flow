@@ -18,33 +18,69 @@ COLORS = [
 MATCH = 2; // number of cards to match
 COLS = 4;
 
-drawCard(color: TColor) -> Tropic {
+FACES = {
+	colorsLen = length(COLORS);
+	generate(0, colorsLen * MATCH, \i -> COLORS[i % colorsLen]);
+}
+
+drawCard(card: Card) -> Tropic {
 	size = TFixed(150.0, 150.0);
 
-	card = Card(color, make(false), make(false));
-	toggleCard = \ -> reverseBehaviour(card.opened);
+	open = \ -> nextDistinct(card.opened, true);
 
 	button = TSelect(card.opened, \opened -> {
 		faceColor = if (opened) card.face else TDarkGrey();
-		TTextButton("", "", [faceColor, TForeground(size)], [TOnClicked(toggleCard)]);
+		TTextButton("", "", [faceColor, TForeground(size)], [TOnClicked(open)]);
 	});
 
 	TBorder4(2.0, button);
 }
 
+
+blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<bool>) -> Tropic {
+	state = [
+		// send click signals to behaviour
+		TMouseDown(click),
+		// disallow event propagation below
+		MouseMove(\mi -> mi().inside),
+		RollOver(nop1),
+		RollOut(nop1)
+	];
+
+	TCopySize(
+		TFrame(40.0, 0.0, [Fill(0xe3e3e3)], content),
+		\tr -> TVisible(visible, TInteractive(state, TRectangle(interactiveRectangleStyle, tr))),
+		true
+	);
+}
+
 main() {
 	header = TText("Memory game", [FontSize(20.0)]);
 
-	colorsLen = length(COLORS)
-	faces = generate(0, colorsLen * MATCH, \i -> COLORS[i % colorsLen]);
+	makeCard = \color -> Card(color, make(false), make(false));
+	cards = map(shuffleArray(FACES), makeCard);
+	cardGrid = TGrid(splitByNumber(map(cards, drawCard), COLS));
 
-	cards = map(shuffleArray(faces), drawCard);
-	cardGrid = TGrid(splitByNumber(cards, COLS));
+	openedStates = fmerge(map(cards, \c -> c.opened));
+	openedCount = flength(ffilter(openedStates, idfn));
 
-	view = TLinesXCenter([
-		header,
-		TFrame(40.0, 0.0, [Fill(0xe3e3e3)], cardGrid)
-	]) |> TCenterX;
+	closeClick = make(false);
+	closeOpened = \close -> {
+		if (close) {
+			// deferred pauses execution for a bit, to avoid bad update cycles
+			deferred(\ -> iter(cards, \c -> nextDistinct(c.opened, false)));
+		}
+	}
 
-	trender(view, []);
+	game = TConstruct(
+		[
+			makeSubscribe(closeClick, closeOpened)
+		],
+		TLinesXCenter([
+			header,
+			blockerForm(cardGrid, closeClick, feq(openedCount, MATCH)),
+		]) |> TCenterX
+	);
+
+	trender(game, []);
 }
