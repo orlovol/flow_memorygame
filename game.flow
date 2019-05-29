@@ -1,39 +1,52 @@
 import lib/tropic/tropic_ui;
 
 Card(
-	face: TColor,
+	face: string,
 	opened: DynamicBehaviour<bool>,
 	solved: DynamicBehaviour<bool>,
 );
 
-COLORS = [
-	TGreen(),
-	TRed(),
-	TBlue(),
-	TYellow(),
-	TWhite(),
-	TBlack(),
-];
-
+ICONSIZE = WidthHeight(160.0, 160.0);
+ICONBACK = "icons/back.png";
+ICONFACES = generate(0, 10, \i -> "icons/" + lpad(i2s(i), "0", 3) + ".png");
 MATCH = 2; // number of cards to match
-COLS = 4;
-
+COLS = 5;
 FACES = {
-	colorsLen = length(COLORS);
-	generate(0, colorsLen * MATCH, \i -> COLORS[i % colorsLen]);
+	types = length(ICONFACES);
+	generate(0, types * MATCH, \i -> ICONFACES[i % types]);
 }
 
 drawCard(card: Card) -> Tropic {
-	size = TFixed(150.0, 150.0);
+	face = TPicture(card.face, [ICONSIZE]);
+	back = TPicture(ICONBACK, [ICONSIZE]);
+
+	hovering = make(false);
+	pressing = make(false);
+
+	highlight = \color, size -> TRectangle([Fill(color), FillOpacity(0.35)], size);
+	highlightVisible = fOr(card.solved, fand(fnot(card.opened), hovering));
+
+	normal = TCopySize(
+		TIf(card.opened, face, back),
+		\size -> TVisible(highlightVisible,
+			TIf(
+				pressing,
+				highlight(black, size),
+				highlight(white, size)
+			)
+		),
+		true
+	);
 
 	open = \ -> nextDistinct(card.opened, true);
-	state = [TOnClicked(open), TEnabled(fnot(card.solved))];
+	state = [
+		TOnClicked(open),
+		THovering(hovering),
+		TPressed(pressing),
+		TEnabled(fnot(card.solved))
+	];
 
-	button = TSelect(card.opened, \opened -> {
-		faceColor = if (opened) card.face else TDarkGrey();
-		TTextButton("", "", [faceColor, TForeground(size)], state);
-	});
-
+	button = TRawButton(normal, normal, normal, normal, "", [], state);
 	TBorder4(2.0, button);
 }
 
@@ -57,7 +70,7 @@ blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<b
 main() {
 	header = TText("Memory game", [FontSize(20.0)]);
 
-	makeCard = \color -> Card(color, make(false), make(false));
+	makeCard = \icon -> Card(icon, make(false), make(false));
 	cards = map(shuffleArray(FACES), makeCard);
 	cardGrid = TGrid(splitByNumber(map(cards, drawCard), COLS));
 
