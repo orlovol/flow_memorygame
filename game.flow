@@ -27,15 +27,15 @@ drawCard(card: Card) -> Tropic {
 	size = TFixed(150.0, 150.0);
 
 	open = \ -> nextDistinct(card.opened, true);
+	state = [TOnClicked(open), TEnabled(fnot(card.solved))];
 
 	button = TSelect(card.opened, \opened -> {
 		faceColor = if (opened) card.face else TDarkGrey();
-		TTextButton("", "", [faceColor, TForeground(size)], [TOnClicked(open)]);
+		TTextButton("", "", [faceColor, TForeground(size)], state);
 	});
 
 	TBorder4(2.0, button);
 }
-
 
 blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<bool>) -> Tropic {
 	state = [
@@ -61,24 +61,38 @@ main() {
 	cards = map(shuffleArray(FACES), makeCard);
 	cardGrid = TGrid(splitByNumber(map(cards, drawCard), COLS));
 
-	openedStates = fmerge(map(cards, \c -> c.opened));
-	openedCount = flength(ffilter(openedStates, idfn));
+	activeCardStates = fmerge(map(cards, \c -> fand(c.opened, fnot(c.solved))));
+	activeCount = flength(ffilter(activeCardStates, idfn));
 
 	closeClick = make(false);
 	closeOpened = \close -> {
 		if (close) {
+			unsolvedCards = filter(cards, \c -> !getValue(c.solved));
 			// deferred pauses execution for a bit, to avoid bad update cycles
-			deferred(\ -> iter(cards, \c -> nextDistinct(c.opened, false)));
+			deferred(\ -> iter(unsolvedCards, \c -> nextDistinct(c.opened, false)));
 		}
 	}
 
+	matchOpened = \activeStates -> {
+		activeCards : [Card] = filtermapi(cards, \i, c -> if (activeStates[i]) Some(c) else None());
+		if (length(activeCards) == MATCH) {
+			face = activeCards[0].face; // if you need array indices, something is wrong
+			matchedCards = filter(activeCards, \c : Card -> c.face == face);
+			if (length(matchedCards) == MATCH) {
+				deferred(\ -> iter(matchedCards, \c -> nextDistinct(c.solved, true)))
+			}
+		}
+	}
+
+
 	game = TConstruct(
 		[
+			makeSubscribe(activeCardStates, matchOpened),
 			makeSubscribe(closeClick, closeOpened)
 		],
 		TLinesXCenter([
 			header,
-			blockerForm(cardGrid, closeClick, feq(openedCount, MATCH)),
+			blockerForm(cardGrid, closeClick, feq(activeCount, MATCH)),
 		]) |> TCenterX
 	);
 
