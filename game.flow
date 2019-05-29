@@ -70,7 +70,12 @@ blockerForm(content: Tropic, click: DynamicBehaviour<bool>, visible: Transform<b
 main() {
 	text = \t : string -> TText(t, [FontSize(20.0)]);
 
-	header = text("Memory game");
+	movesCount = make(0);
+	header = TCols([
+		text("Memory game"),
+		TFillX(),
+		TSelect(movesCount, \moves -> text("Moves: " + i2s(moves))),
+	]);
 
 	makeCard = \icon -> Card(icon, make(false), make(false));
 	cards = map(shuffleArray(FACES), makeCard);
@@ -97,12 +102,14 @@ main() {
 			if (length(matchedCards) == MATCH) {
 				deferred(\ -> iter(matchedCards, \c -> nextDistinct(c.solved, true)))
 			}
+			nextDistinct(movesCount, getValue(movesCount) + 1);
 		}
 	}
 
 	congratulate = \solved -> {
 		if (solved) {
-			dialog = text("You won!");
+			moves = movesCount |> getValue |> i2s;
+			dialog = text("You won in " + moves + " moves!");
 			ShowTDialog(TFrame(20.0, 10.0, [Fill(white)], dialog), []);
 		}
 	}
@@ -113,7 +120,7 @@ main() {
 			makeSubscribe(closeClick, closeOpened),
 			makeSubscribe(solvedAll, congratulate),
 		],
-		TLinesXCenter([
+		TLinesSameWidth([
 			header,
 			blockerForm(cardGrid, closeClick, feq(activeCount, MATCH)),
 		]) |> TCenterX
