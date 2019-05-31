@@ -36,7 +36,9 @@ Open `flow_program.html` in browser to see the result. Check browser console for
 
 If you need to rebuild the `flowc1` binary:
 
-1. Install **Java 8 Development Kit** to install `javac` that can compile `flowc1`. Your distro may have this package in repositories, called `openjdk-8-jdk` or `jdk8-openjdk`.
+1. Install **Java 8 Development Kit** to install `javac` that can compile `flowc1`. 
+
+    Your distro may have this package in repositories, called `openjdk-8-jdk` or `jdk8-openjdk`.
 
 2. Change to flow9 directory & run `build-flowc`.
 
