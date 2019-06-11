@@ -7,6 +7,12 @@ Flow allows compiling into single HTML/Javascript page, so this may be a good pl
 [Live version](https://hey-sancho.github.io/flow_memorygame/index.html) of the game.
 
 
+## Setup
+
+I've included a [simple install guide](INSTALL.md) that should get you up and running.
+It focuses on minimal working setup for compiling Flow code using JavaScript target.
+Its Linux-only, but the steps are roughly the same for other OSes.
+
 ## Contents
 
 This project is written as an example of Flow capabilites and as a simple tutorial to learn the language.
@@ -102,13 +108,17 @@ For more information about used functions check the [Flow sources and documentat
     ```
     And we're done!
 
-    All that's left to do is fix scaling and layout a bit, for
-    better mobile experience.
-    * Note that layout is not dynamic, so you need to reload
-    page if you use devtools mobile preview *
-    And for better development experience we can export our game
-    function, so anyone can now import & embed it in their
-    serious business programs.
+    All that's left to do is fix scaling and layout a bit, for better mobile experience.
+    * Note that layout is not dynamic, so you need to reload page if you use devtools mobile preview *
+    And for better development experience we can export our game function,
+    so anyone can now import & embed it in their serious business programs.
 
     Hope you've had fun & good luck with your own creations!
     ```
+
+### More improvements
+
+These are community-driven improvements, that were added after the main tutorial was written.
+They bring much more to the table, and deserve a special list.
+
+13. [Auto-close cards](https://github.com/hey-sancho/flow_memorygame/commit/e13aab2) by [danichmur](https://github.com/danichmur)
