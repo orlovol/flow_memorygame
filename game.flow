@@ -129,11 +129,20 @@ memoryGameTropic(gameRound: int, nextRound: () -> void) -> Tropic {
 		}
 	}
 
+	deferredCloseMismatched = \openedCount -> {
+		timer(500, \-> {
+			if (openedCount == MATCH) {
+				closeOpened(true)
+			}
+		});
+	}
+
 	TConstruct(
 		[
 			makeSubscribe(activeCardStates, matchOpened),
 			makeSubscribe(closeClick, closeOpened),
 			makeSubscribe(solvedAll, congratulate),
+			makeSubscribe(activeCount, deferredCloseMismatched)
 		],
 		TLinesSameWidth([
 			header,
